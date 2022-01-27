@@ -173,35 +173,58 @@ sudo usermod newftpuser -s /bin/ftponly
 	![NGINX-Landingspage](https://www.smartstore.com/news/images/Qs7PlUtvga.png)
 
 ### NGINX als Reverse-Proxy konfigurieren
-Folgende Datei mit einem Editor öffnen und den Inhalt durch den Codeausschnitt ersetzen:
+Auf CentOS 8 ist der Ordner ```/usr/share/nginx/html``` als Standard-WWW-Ordner konfiguriert. Wir werden diesen ORdner nicht nutzen und erstellen stattdessen einen Ordner unter ```/var/www```.
+Neuen Ordner für Smartstore erstellen:
+ ```bash
+sudo mkdir -p /var/www/smartstore/
+```
+Als nächstes passen wir die Eigentumsrechte an:
+ ```bash
+sudo chown -R $USER:$USER /var/www/smartstore
+```
+>Hinweis: $USER ist eine Umgebungsvariable
+
+Damit Nginx den Inhalt des Ordners bereitstellen kann, muss ein Serverblock konfiguriert werden. Dazu wird eine neue Konfigurations-Datei erstellt:
+ ```bash
+sudo nano /etc/nginx/conf.d/smartstore.conf
+```
+
+
+Den folgenden Codeausschnitt in die Datei einfügen:
 	 ```bash
 	/etc/nginx/sites-available/default
 	```
-
 ```bash
 server {
-listen        80;
-server_name   example.com *.example.com;
-location / {
-proxy_pass         http://127.0.0.1:5000;
-proxy_http_version 1.1;
-proxy_set_header   Upgrade $http_upgrade;
-proxy_set_header   Connection keep-alive;
-proxy_set_header   Host $host;
-proxy_cache_bypass $http_upgrade;
-proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
-proxy_set_header   X-Forwarded-Proto $scheme;
-    }
+	listen        80;
+	server_name   example.com *.example.com;
+	location / {
+				proxy_pass         http://127.0.0.1:5000;
+				proxy_http_version 1.1;
+				proxy_set_header   Upgrade $http_upgrade;
+				proxy_set_header   Connection keep-alive;
+				proxy_set_header   Host $host;
+				proxy_cache_bypass $http_upgrade;
+				proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
+				proxy_set_header   X-Forwarded-Proto $scheme;
+			    }
+	}		    
 ```
 
-Wenn noch keine Domain vorhanden ist, kann auch eine IP-Adresse eingetragen werden:
-```bash
-server_name 172.16.1.17;
-```
+> ** Hinweis**: Wenn noch keine Domain vorhanden ist, kann auch eine IP-Adresse eingetragen werden:```server_name 172.16.1.17;```
+
 Hiernach muss die NGINX-Konfiguration neu geladen werden:
 ```bash
 sudo systemctl reload nginx
+sudo systemctl restart nginx
 ```
+Mit diesem Befehl kann die NGINX-Konfiguration geprüft werden:
+```bash
+sudo nginx -t
+```
+todo
+todo
+todo
 
 
 ## MySQL installieren
