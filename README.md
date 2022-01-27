@@ -52,6 +52,15 @@ sudo nginx -t
 sudo systemctl enable nginx
   ```
 
+### Firewallregeln für HTTP und HTTPS anpassen:
+   ```bash
+sudo firewall-cmd --permanent --zone=public --add-service=https --add-service=http
+  ```
+   ```bash
+sudo firewall-cmd --reload
+  ```
+
+
 ## FTP-Server installieren und konfigurieren
 ### Installation von ```vsftp```
    ```bash
@@ -111,83 +120,44 @@ sudo firewall-cmd --permanent --add-port=30000-31000/tcp
 
 Firewall Regeln neu laden:
    ```bash
-firewall-cmd --reload
+sudo firewall-cmd --reload
   ```
 
 ----
 
-Eigene Konfigurationsdateien sollten am besten im Verzeichnis
-   ```bash
-conf.d
-  ```
-  abgelegt werden.
-  
-
-Wir erstellen mit diesem Befehl eine neue Konfigurationsdatei:
-   ```bash
-sudo vi /etc/proftpd/conf.d/custom.confcustom
-  ```
-Und fügen folgende Zeilen ein:
-   ```bash
- # Ftp user doesn't need a valid shell
-<Global>
-    RequireValidShell off
-</Global>
- # If desired turn off IPv6
-UseIPv6 off
- # Default directory is ftpusers home
-DefaultRoot ~ ftpuser
- # Limit login to the ftpuser group
-<Limit LOGIN>
-    DenyGroup !ftpuser
-</Limit>
-  ```
-
-Anschließend wird die Datei gespeichert und der ProFTPD Server neu gestartet:
-   ```bash
-sudo systemctl restart proftpd.service
-  ```
 
 ### FTP Benutzer erstellen
-Für den FTP Zugriff wird ein eigener BEnutzer ohne gültiger Login-Shell und mit dem Homeverzeichnis 
+Für den FTP Zugriff ein neuer Benutzer angelegt oder ein vorhandener Benutzer genutzt werden. Wenn ein vorhandener Benutzer genutzt werden soll, kann der folgende Schritt übersprungen werden.
+
+Einen neuen Benutzer anlegen und das Kennwort setzen:
    ```bash
-/var/www/upload
+sudo adduser newftpuser
+sudo passwd newftpuser
   ```
-  erstellt.
+
+Einen Benutzer zur Liste der erlaubten FTP-Benutzer hinzufügen:
    ```bash
-sudo adduser ftpuser --shell /bin/false --home /var/www/upload
+echo "newftpuser" | sudo tee -a /etc/vsftpd/user_list
   ```
   
-
-## Firewall regeln anpassen
-
- ### Liste der bereits eingerichteten Anwendungsprofile ausgeben:
-
+FTP-Verzeichnisbaum erstellen und die richtigen Rechte setzen:
    ```bash
-   sudo ufw app list
-   ```
-> **Hinweis:** Wird der Befehl mit 
-> ```bash
-> sudo: ufw: Befehl nicht gefunden
- >  ```
- > quittiert, dann ist keine Firewall installiert und dieser Punkt kann erst einmal übersprungen werden.
+sudo mkdir -p /home/newftpuser/ftp/upload
+sudo chmod 550 /home/newftpuser/ftp
+sudo chmod 750 /home/newftpuser/ftp/upload
+sudo chown -R newftpuser: /home/newftpuser/ftp
+  ```
 
- ### In der ausgebenen Liste sind drei NGINX-Profile vorhanden:
- 
-- **Nginx Full**: Dieses Profil öffnet Port 80 und 443 für NGINX
-- **Nginx HTTP**: Dieses Profil öffnet nur Port 80 für NGINX
-- **Nginx HTTPS**: Dieses Profil öffnet nur Port 443 für NGINX
- 
-### Port 80 und Port 443 für NGINX zulassen:
-   ```bash
-   sudo ufw allow 'Nginx FULL'
-   ```
-   
-### Das Ergebnis prüfen:
-   ```bash
-   sudo ufw status
-   ```
- 
+### Bei Bedarf: Shell-Zugang für FTP-Benutzer sperren
+```bash
+echo -e '#!/bin/sh\necho "This account is limited to FTP access only."' | sudo tee -a  /bin/ftponly
+sudo chmod a+x /bin/ftponly
+echo "/bin/ftponly" | sudo tee -a /etc/shells
+sudo usermod newftpuser -s /bin/ftponly
+  ```
+
+
+  
  ## NGINX einrichten
  ### Standard NGINX-Seite aufrufen
  - IP-Adresse herausfinden, wenn unbekannt
