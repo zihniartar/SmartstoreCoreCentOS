@@ -228,51 +228,39 @@ todo
 
 
 ## MySQL installieren
+### Installieren von MySQL
 
- ### Das Paket ```mysql-server``` installieren:
-
-**MySQL Repository konfigurieren**
-Lokalen Paket-Index aktualisieren:
+Das Paket ```mysql-server``` und seine Abhängigkeiten installieren
    ```bash
-sudo apt update
+sudo dnf install mysql-server
    ```
-   ```gnupg``` installieren:
-   ```bash
-sudo apt install gnupg
-   ```
-Als nächstes das MySQL ```.deb``` Paket mit ```wget``` herunterladen und installieren:
-Die [MySQL Downloadseite](https://dev.mysql.com/downloads/repo/apt/) im Browser öffnen und unten rechts den **Download** Button drücken und. Die Aufforderung zum Login bzw. Anmelden ignorieren und mit der rechten Maustaste die Adresse des Links "**Nein Danke...**" kopieren.
+Hiermit ist MySQL installiert, aber nicht konfiguriert.
 
-Die Datei auf den Server herunterladen (statt der URL zur ```.deb```-Datei, die oben kopierte URL einfügen):
+MySQL-Dienst starten:
    ```bash
-   cd /tmp
-   wget https://dev.mysql.com/get/mysql-apt-config_0.8.22-1_all.deb
+sudo systemctl start mysqld.service
    ```
 
-Die Datei wurde in das aktuelle Verzeichnis heruntergeladen und kann installiert werden:
+MySQL-Dienst-Status anzeigen:
    ```bash
-sudo dpkg -i mysql-apt-config*
-   ```
-```dpkg``` wird zum Installieren, Entfernen und Überprüfen von ```.deb```-Softwarepaketen verwendet. Der Schalter ```-i``` zeigt an, dass die angegebene Datei installiert werden soll.
-Während der Installation wird ein Konfigurationsbildschirm angezeigt, im dem die gewünschte Version von MySQL angegeben werden kann.
-
-Paket-Cache aktualisieren:
-   ```bash
-   sudo apt update
+sudo systemctl status mysqld
    ```
 
-**MySQL-Installation** aufrufen:
+MySQL-Dienst zum Systemstart hinzufügen:
    ```bash
-   sudo apt install mysql-server
+sudo systemctl enable mysqld
    ```
-   Sicherheitsskript ausführen:
+
+### Sichern von MySQL
+
+MySQL enthält ein Sicherheitsscript, mit dem die Sicherheit von MySQL verbessert werden kann.
+Sicherheitsskript ausführen:
    ```bash
    sudo mysql_secure_installation
    ```
->Die Einstellungen hier können je nach individuellen Sicherheitsanforderungen variieren.
+> Bitte treffen Sie eine, Ihren Bedürfnissen entsprechende Auswahl.
 
-
-   Um die Benutzerauthentifizierung- und Berechtigungen anzupassen MySQL-Eingabeaufforderung öffnen:
+Um die Benutzerauthentifizierung- und Berechtigungen anzupassen MySQL-Eingabeaufforderung öffnen:
    ```bash
    mysql -u root -p
    ```
@@ -314,14 +302,9 @@ exit
 ### Dateien übertragen
 Die Dateien aus dem Release per FTP auf den Debian-Server in den Ordner
    ```bash
-/var/www/html
+/var/www/smartstore
 ``` 
 übertragen.
-> **Hinweis:** Bei unserem Beispiel FTP-Benutzer werden die Dateien per FTP nach 
-> ```bash
->/var/www/upload
- >  ```
- > übertragen und müssen von da verschoben werden.
       	
 ### App als Dienst einrichten
 Erstellen einer Dienstdefinitionsdatei für ```systemd```:
